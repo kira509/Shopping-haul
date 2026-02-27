@@ -1,86 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [items, setItems] = useState([]);
-  const [itemName, setItemName] = useState('');
-  const [itemPrice, setItemPrice] = useState('');
-  const [totalBudget, setTotalBudget] = useState(100);
+  const [items, setItems] = useState(() => {
+    const saved = localStorage.getItem('items');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [budget, setBudget] = useState(() => {
+    const saved = localStorage.getItem('budget');
+    return saved ? JSON.parse(saved) : 100;
+  });
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
 
-  // LOGIC: Calculate current spending
-  const spent = items
-    .filter(item => item.completed)
-    .reduce((sum, item) => sum + Number(item.price), 0);
+  useEffect(() => {
+    localStorage.setItem('items', JSON.stringify(items));
+    localStorage.setItem('budget', JSON.stringify(budget));
+  }, [items, budget]);
 
-  const remaining = totalBudget - spent;
+  const spent = items.filter(i => i.done).reduce((sum, i) => sum + i.price, 0);
+  const remaining = budget - spent;
 
-  const addItem = (e) => {
+  const add = (e) => {
     e.preventDefault();
-    if (!itemName || !itemPrice) return;
-    
-    const newItem = {
-      id: Date.now(),
-      name: itemName,
-      price: parseFloat(itemPrice),
-      completed: false
-    };
-    
-    setItems([...items, newItem]);
-    setItemName('');
-    setItemPrice('');
-  };
-
-  const toggleItem = (id) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, completed: !item.completed } : item
-    ));
+    if (!name || !price) return;
+    setItems([...items, { id: Date.now(), name, price: parseFloat(price), done: false }]);
+    setName(''); setPrice('');
   };
 
   return (
-    <div className="app-container">
-      <header>
-        <h1 className="logo">SHOP<span>FAST</span></h1>
-        <div className="budget-card">
-          <div className="budget-info">
-            <span>REMAINING</span>
-            <h2 className={remaining < 0 ? 'over-budget' : ''}>
-              ${remaining.toFixed(2)}
-            </h2>
-          </div>
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${Math.min((spent / totalBudget) * 100, 100)}%` }}
-            ></div>
-          </div>
+    <div className="container">
+      <h1 className="logo">SHOP<span>FAST</span></h1>
+      <div className="budget-card">
+        <div className="flex-row">
+          <span>REMAINING</span>
+          <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="b-input" />
         </div>
-      </header>
+        <h2 className={remaining < 0 ? 'red' : ''}>${remaining.toFixed(2)}</h2>
+        <div className="bar"><div className="fill" style={{width: `${Math.min((spent/budget)*100, 100)}%`}}></div></div>
+      </div>
 
-      <form onSubmit={addItem} className="input-group">
-        <input 
-          type="text" placeholder="Item name..." 
-          value={itemName} onChange={(e) => setItemName(e.target.value)} 
-        />
-        <input 
-          type="number" placeholder="$" 
-          value={itemPrice} onChange={(e) => setItemPrice(e.target.value)} 
-        />
+      <form onSubmit={add} className="input-group">
+        <input placeholder="Item..." value={name} onChange={e => setName(e.target.value)} />
+        <input type="number" placeholder="$" value={price} onChange={e => setPrice(e.target.value)} />
         <button type="submit">+</button>
       </form>
 
-      <ul className="shopping-list">
-        {items.map(item => (
-          <li key={item.id} className={item.completed ? 'item checked' : 'item'}>
-            <div className="item-info" onClick={() => toggleItem(item.id)}>
-              <span className="checkbox"></span>
-              <span className="name">{item.name}</span>
-            </div>
-            <span className="price">${item.price.toFixed(2)}</span>
-          </li>
-        ))}
-      </ul>
+      {items.map(item => (
+        <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => {
+          setItems(items.map(i => i.id === item.id ? {...i, done: !i.done} : i))
+        }}>
+          <span>{item.name}</span>
+          <span>${item.price.toFixed(2)}</span>
+        </div>
+      ))}
     </div>
   );
 }
-
 export default App;
-            
