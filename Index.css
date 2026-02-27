@@ -1,27 +1,81 @@
-/* Add these to your existing CSS or replace the .item section */
+:root { 
+  --bg: #000000; 
+  --card: #141414; 
+  --neon: #ccff00; 
+  --text: #ffffff; 
+  --input-bg: #1f1f1f;
+}
 
-.input-group-vertical { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.input-group-vertical .row { display: flex; gap: 8px; }
+body { 
+  background: var(--bg); 
+  color: var(--text); 
+  font-family: -apple-system, system-ui, sans-serif; 
+  margin: 0; 
+  padding: 15px; 
+}
 
+.container { max-width: 450px; margin: 0 auto; }
+
+/* Budget Section */
+.budget-card { 
+  background: var(--card); 
+  padding: 20px; 
+  border-radius: 16px; 
+  margin: 20px 0; 
+  border: 1px solid #222; 
+}
+
+.flex-row { display: flex; justify-content: space-between; align-items: center; }
+.b-input { 
+  background: none; border: none; color: var(--neon); width: 80px; 
+  text-align: right; font-size: 18px; font-weight: bold; outline: none;
+}
+
+/* Input Form Fix */
+.input-group-vertical { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+.row { display: flex; gap: 10px; }
+
+input { 
+  background: var(--input-bg); 
+  border: 1px solid #333; 
+  color: #fff; 
+  padding: 12px; 
+  border-radius: 8px; 
+  outline: none;
+  font-size: 14px;
+}
+
+input:focus { border-color: var(--neon); }
+
+button[type="submit"] { 
+  background: var(--neon); 
+  color: #000; 
+  border: none; 
+  padding: 12px; 
+  border-radius: 8px; 
+  font-weight: bold; 
+  width: 100%;
+}
+
+/* List Items */
 .item { 
   background: var(--card); 
   margin-bottom: 12px; 
   border-radius: 12px; 
-  padding: 12px;
+  padding: 15px;
   border: 1px solid #222;
 }
 
-.item-main { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.item-info { display: flex; flex-direction: column; }
-.item-info .name { font-weight: bold; font-size: 1.1rem; }
-.item-info .sub { font-size: 0.8rem; color: #888; margin-top: 4px; }
+.item-main { display: flex; justify-content: space-between; align-items: center; }
+.name { font-weight: bold; font-size: 1.1rem; display: block; }
+.sub { font-size: 0.8rem; color: #888; }
 .total-price { font-weight: bold; color: var(--neon); }
 
 .item-actions { 
   display: flex; 
   gap: 10px; 
   margin-top: 12px; 
-  padding-top: 10px; 
+  padding-top: 12px; 
   border-top: 1px solid #222; 
 }
 
@@ -29,10 +83,13 @@
   flex: 1; 
   background: #252525; 
   color: white; 
-  padding: 5px; 
+  border: none;
+  padding: 8px; 
   border-radius: 6px; 
-  font-size: 14px;
 }
 
-.item-actions .del-btn { background: #331111; color: #ff4444; border: 1px solid #441111; }
-.item.done { border-color: var(--neon); opacity: 0.6; }
+.del-btn { color: #ff4444 !important; background: #2a1515 !important; }
+.item.done { border-color: var(--neon); opacity: 0.5; }
+
+.bar { height: 6px; background: #222; border-radius: 3px; margin-top: 15px; overflow: hidden; }
+.fill { height: 100%; background: var(--neon); transition: 0.3s; }
