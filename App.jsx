@@ -1,35 +1,58 @@
 import React, { useState, useEffect } from 'react';
+import { db } from './firebase'; 
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, query, orderBy } from "firebase/firestore";
 
 function App() {
-  const [items, setItems] = useState(() => {
-    const saved = localStorage.getItem('items');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [budget, setBudget] = useState(() => {
-    const saved = localStorage.getItem('budget');
-    return saved ? JSON.parse(saved) : 5000; // Default budget KSh 5,000
-  });
+  const [items, setItems] = useState([]);
+  const [budget, setBudget] = useState(5000);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
 
+  // Sync Items from Database
   useEffect(() => {
-    localStorage.setItem('items', JSON.stringify(items));
-    localStorage.setItem('budget', JSON.stringify(budget));
-  }, [items, budget]);
+    const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setItems(snapshot.docs.map(d => ({ ...d.data(), id: d.id })));
+    });
+    return () => unsub();
+  }, []);
 
-  const spent = items.filter(i => i.done).reduce((sum, i) => sum + i.price, 0);
-  const remaining = budget - spent;
+  // Sync Budget from Database
+  useEffect(() => {
+    const fetchBudget = async () => {
+      const docSnap = await getDoc(doc(db, "config", "budget"));
+      if (docSnap.exists()) setBudget(docSnap.data().value);
+    };
+    fetchBudget();
+  }, []);
 
-  const add = (e) => {
+  const updateBudget = async (val) => {
+    setBudget(val);
+    await setDoc(doc(db, "config", "budget"), { value: val });
+  };
+
+  const addItem = async (e) => {
     e.preventDefault();
     if (!name || !price) return;
-    setItems([...items, { id: Date.now(), name, price: parseFloat(price), done: false }]);
+    await addDoc(collection(db, "items"), { 
+      name, 
+      price: parseFloat(price), 
+      done: false,
+      createdAt: Date.now() 
+    });
     setName(''); setPrice('');
   };
 
-  const toggleItem = (id) => {
-    setItems(items.map(i => i.id === id ? {...i, done: !i.done} : i));
+  const toggleItem = async (item) => {
+    await updateDoc(doc(db, "items", item.id), { done: !item.done });
   };
+
+  const deleteItem = async (id) => {
+    await deleteDoc(doc(db, "items", id));
+  };
+
+  const spent = items.filter(i => i.done).reduce((sum, i) => sum + i.price, 0);
+  const remaining = budget - spent;
 
   return (
     <div className="container">
@@ -40,49 +63,33 @@ function App() {
             <span>SET TOTAL BUDGET</span>
             <div className="budget-edit-wrapper">
               <span>KSh</span>
-              <input 
-                type="number" 
-                value={budget} 
-                onChange={(e) => setBudget(Number(e.target.value))} 
-                className="b-input" 
-              />
+              <input type="number" value={budget} onChange={(e) => updateBudget(Number(e.target.value))} className="b-input" />
             </div>
           </div>
-          <div className="remaining-section">
-            <span className="label">REMAINING</span>
-            <h2 className={remaining < 0 ? 'red' : ''}>
-              KSh {remaining.toLocaleString()}
-            </h2>
-          </div>
-          <div className="bar">
-            <div className="fill" style={{width: `${Math.min((spent/budget)*100, 100)}%`}}></div>
-          </div>
+          <h2 className={remaining < 0 ? 'red' : ''}>KSh {remaining.toLocaleString()}</h2>
+          <div className="bar"><div className="fill" style={{width: `${Math.min((spent/budget)*100, 100)}%`}}></div></div>
         </div>
       </header>
 
-      <form onSubmit={add} className="input-group">
-        <input placeholder="Item name..." value={name} onChange={e => setName(e.target.value)} />
+      <form onSubmit={addItem} className="input-group">
+        <input placeholder="Item..." value={name} onChange={e => setName(e.target.value)} />
         <input type="number" placeholder="KSh" value={price} onChange={e => setPrice(e.target.value)} />
         <button type="submit">ADD</button>
       </form>
 
       <div className="list-container">
         {items.map(item => (
-          <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => toggleItem(item.id)}>
+          <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => toggleItem(item)}>
             <div className="item-left">
-              <div className="check-circle"></div>
               <span>{item.name}</span>
             </div>
-            <span className="item-price">KSh {item.price.toLocaleString()}</span>
+            <div className="item-right">
+              <span className="item-price">KSh {item.price.toLocaleString()}</span>
+              {item.done && <button className="del-btn" onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}>×</button>}
+            </div>
           </div>
         ))}
       </div>
-
-      {items.length > 0 && (
-        <button className="clear-btn" onClick={() => window.confirm("Clear list?") && setItems([])}>
-          Clear All
-        </button>
-      )}
     </div>
   );
 }
