@@ -7,8 +7,8 @@ function App() {
   const [budget, setBudget] = useState(5000);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [qty, setQty] = useState(1);
 
-  // Sync Items from Database
   useEffect(() => {
     const q = query(collection(db, "items"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snapshot) => {
@@ -17,7 +17,6 @@ function App() {
     return () => unsub();
   }, []);
 
-  // Sync Budget from Database
   useEffect(() => {
     const fetchBudget = async () => {
       const docSnap = await getDoc(doc(db, "config", "budget"));
@@ -37,10 +36,16 @@ function App() {
     await addDoc(collection(db, "items"), { 
       name, 
       price: parseFloat(price), 
+      qty: parseInt(qty) || 1,
       done: false,
       createdAt: Date.now() 
     });
-    setName(''); setPrice('');
+    setName(''); setPrice(''); setQty(1);
+  };
+
+  const updateQty = async (item, delta) => {
+    const newQty = Math.max(1, (item.qty || 1) + delta);
+    await updateDoc(doc(db, "items", item.id), { qty: newQty });
   };
 
   const toggleItem = async (item) => {
@@ -48,10 +53,16 @@ function App() {
   };
 
   const deleteItem = async (id) => {
-    await deleteDoc(doc(db, "items", id));
+    if(window.confirm("Remove this item?")) {
+      await deleteDoc(doc(db, "items", id));
+    }
   };
 
-  const spent = items.filter(i => i.done).reduce((sum, i) => sum + i.price, 0);
+  // Total spent calculation now includes quantity
+  const spent = items
+    .filter(i => i.done)
+    .reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
+  
   const remaining = budget - spent;
 
   return (
@@ -60,7 +71,7 @@ function App() {
         <h1 className="logo">SHOP<span>FAST</span></h1>
         <div className="budget-card">
           <div className="flex-row">
-            <span>SET TOTAL BUDGET</span>
+            <span>TOTAL BUDGET</span>
             <div className="budget-edit-wrapper">
               <span>KSh</span>
               <input type="number" value={budget} onChange={(e) => updateBudget(Number(e.target.value))} className="b-input" />
@@ -71,21 +82,32 @@ function App() {
         </div>
       </header>
 
-      <form onSubmit={addItem} className="input-group">
-        <input placeholder="Item..." value={name} onChange={e => setName(e.target.value)} />
-        <input type="number" placeholder="KSh" value={price} onChange={e => setPrice(e.target.value)} />
-        <button type="submit">ADD</button>
+      <form onSubmit={addItem} className="input-group-vertical">
+        <div className="row">
+          <input placeholder="Item name..." value={name} onChange={e => setName(e.target.value)} style={{flex: 2}} />
+          <input type="number" placeholder="Qty" value={qty} onChange={e => setQty(e.target.value)} style={{flex: 0.5}} />
+        </div>
+        <div className="row">
+          <input type="number" placeholder="KSh Price Each" value={price} onChange={e => setPrice(e.target.value)} />
+          <button type="submit">ADD TO LIST</button>
+        </div>
       </form>
 
       <div className="list-container">
         {items.map(item => (
-          <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => toggleItem(item)}>
-            <div className="item-left">
-              <span>{item.name}</span>
+          <div key={item.id} className={`item ${item.done ? 'done' : ''}`}>
+            <div className="item-main" onClick={() => toggleItem(item)}>
+               <div className="item-info">
+                  <span className="name">{item.name}</span>
+                  <span className="sub">KSh {item.price} x {item.qty || 1}</span>
+               </div>
+               <span className="total-price">KSh {(item.price * (item.qty || 1)).toLocaleString()}</span>
             </div>
-            <div className="item-right">
-              <span className="item-price">KSh {item.price.toLocaleString()}</span>
-              {item.done && <button className="del-btn" onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}>×</button>}
+            
+            <div className="item-actions">
+              <button onClick={() => updateQty(item, -1)}>-</button>
+              <button onClick={() => updateQty(item, 1)}>+</button>
+              <button className="del-btn" onClick={() => deleteItem(item.id)}>🗑️</button>
             </div>
           </div>
         ))}
