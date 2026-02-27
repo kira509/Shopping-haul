@@ -1,86 +1,15 @@
-:root {
-  --bg: #121212;
-  --card: #1e1e1e;
-  --neon: #ccff00; /* Lime Green */
-  --text: #ffffff;
-  --muted: #888;
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  margin: 0;
-}
-
-.app-container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.logo { color: var(--text); letter-spacing: 2px; }
+:root { --bg: #121212; --card: #1e1e1e; --neon: #ccff00; --text: #fff; }
+body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 20px; }
+.container { max-width: 400px; margin: 0 auto; }
 .logo span { color: var(--neon); }
-
-.budget-card {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 15px;
-  margin: 20px 0;
-  border: 1px solid #333;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #333;
-  border-radius: 4px;
-  margin-top: 10px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--neon);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.input-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-input {
-  background: var(--card);
-  border: 1px solid #333;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-}
-
-button {
-  background: var(--neon);
-  border: none;
-  padding: 0 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.item {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-  background: var(--card);
-  margin-bottom: 10px;
-  border-radius: 10px;
-  transition: opacity 0.2s;
-}
-
-.item.checked {
-  opacity: 0.5;
-  text-decoration: line-through;
-  border: 1px solid var(--neon);
-}
-
-.over-budget { color: #ff4444; }
+.budget-card { background: var(--card); padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid #333; }
+.flex-row { display: flex; justify-content: space-between; font-size: 12px; color: #888; }
+.b-input { background: none; border: none; color: var(--neon); width: 50px; text-align: right; font-weight: bold; }
+.bar { height: 6px; background: #333; border-radius: 3px; margin-top: 10px; }
+.fill { height: 100%; background: var(--neon); transition: 0.3s; }
+.input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+input { background: var(--card); border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; flex: 1; }
+button { background: var(--neon); border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; }
+.item { display: flex; justify-content: space-between; padding: 15px; background: var(--card); margin-bottom: 8px; border-radius: 8px; cursor: pointer; }
+.item.done { opacity: 0.4; text-decoration: line-through; border: 1px solid var(--neon); }
+.red { color: #ff4444; }
