@@ -7,7 +7,7 @@ function App() {
   });
   const [budget, setBudget] = useState(() => {
     const saved = localStorage.getItem('budget');
-    return saved ? JSON.parse(saved) : 100;
+    return saved ? JSON.parse(saved) : 5000; // Default budget KSh 5,000
   });
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -27,32 +27,62 @@ function App() {
     setName(''); setPrice('');
   };
 
+  const toggleItem = (id) => {
+    setItems(items.map(i => i.id === id ? {...i, done: !i.done} : i));
+  };
+
   return (
     <div className="container">
-      <h1 className="logo">SHOP<span>FAST</span></h1>
-      <div className="budget-card">
-        <div className="flex-row">
-          <span>REMAINING</span>
-          <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="b-input" />
+      <header>
+        <h1 className="logo">SHOP<span>FAST</span></h1>
+        <div className="budget-card">
+          <div className="flex-row">
+            <span>SET TOTAL BUDGET</span>
+            <div className="budget-edit-wrapper">
+              <span>KSh</span>
+              <input 
+                type="number" 
+                value={budget} 
+                onChange={(e) => setBudget(Number(e.target.value))} 
+                className="b-input" 
+              />
+            </div>
+          </div>
+          <div className="remaining-section">
+            <span className="label">REMAINING</span>
+            <h2 className={remaining < 0 ? 'red' : ''}>
+              KSh {remaining.toLocaleString()}
+            </h2>
+          </div>
+          <div className="bar">
+            <div className="fill" style={{width: `${Math.min((spent/budget)*100, 100)}%`}}></div>
+          </div>
         </div>
-        <h2 className={remaining < 0 ? 'red' : ''}>${remaining.toFixed(2)}</h2>
-        <div className="bar"><div className="fill" style={{width: `${Math.min((spent/budget)*100, 100)}%`}}></div></div>
-      </div>
+      </header>
 
       <form onSubmit={add} className="input-group">
-        <input placeholder="Item..." value={name} onChange={e => setName(e.target.value)} />
-        <input type="number" placeholder="$" value={price} onChange={e => setPrice(e.target.value)} />
-        <button type="submit">+</button>
+        <input placeholder="Item name..." value={name} onChange={e => setName(e.target.value)} />
+        <input type="number" placeholder="KSh" value={price} onChange={e => setPrice(e.target.value)} />
+        <button type="submit">ADD</button>
       </form>
 
-      {items.map(item => (
-        <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => {
-          setItems(items.map(i => i.id === item.id ? {...i, done: !i.done} : i))
-        }}>
-          <span>{item.name}</span>
-          <span>${item.price.toFixed(2)}</span>
-        </div>
-      ))}
+      <div className="list-container">
+        {items.map(item => (
+          <div key={item.id} className={`item ${item.done ? 'done' : ''}`} onClick={() => toggleItem(item.id)}>
+            <div className="item-left">
+              <div className="check-circle"></div>
+              <span>{item.name}</span>
+            </div>
+            <span className="item-price">KSh {item.price.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+
+      {items.length > 0 && (
+        <button className="clear-btn" onClick={() => window.confirm("Clear list?") && setItems([])}>
+          Clear All
+        </button>
+      )}
     </div>
   );
 }
