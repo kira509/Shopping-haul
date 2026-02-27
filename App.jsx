@@ -72,7 +72,7 @@ function App() {
   return (
     <div className="container">
       <header>
-        <h1 className="logo">SHOP<span>FAST</span></h1>
+        <h1 className="logo">BEBES<span>SHOPPING HAUL</span></h1>
         <div className="budget-card">
           <div className="flex-row">
             <span>TOTAL BUDGET</span>
