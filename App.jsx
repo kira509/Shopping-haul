@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase'; 
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, query, orderBy, writeBatch } from "firebase/firestore";
 
 function App() {
   const [items, setItems] = useState([]);
@@ -58,11 +58,15 @@ function App() {
     }
   };
 
-  // Total spent calculation now includes quantity
-  const spent = items
-    .filter(i => i.done)
-    .reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
-  
+  const clearAll = async () => {
+    if(window.confirm("Delete everything?")) {
+      items.forEach(async (item) => {
+        await deleteDoc(doc(db, "items", item.id));
+      });
+    }
+  };
+
+  const spent = items.filter(i => i.done).reduce((sum, i) => sum + (i.price * (i.qty || 1)), 0);
   const remaining = budget - spent;
 
   return (
@@ -84,12 +88,12 @@ function App() {
 
       <form onSubmit={addItem} className="input-group-vertical">
         <div className="row">
-          <input placeholder="Item name..." value={name} onChange={e => setName(e.target.value)} style={{flex: 2}} />
-          <input type="number" placeholder="Qty" value={qty} onChange={e => setQty(e.target.value)} style={{flex: 0.5}} />
+          <input placeholder="Item..." value={name} onChange={e => setName(e.target.value)} style={{flex: 2}} />
+          <input type="number" placeholder="Qty" value={qty} onChange={e => setQty(e.target.value)} style={{flex: 0.7}} />
         </div>
         <div className="row">
           <input type="number" placeholder="KSh Price Each" value={price} onChange={e => setPrice(e.target.value)} />
-          <button type="submit">ADD TO LIST</button>
+          <button type="submit">ADD</button>
         </div>
       </form>
 
@@ -103,7 +107,6 @@ function App() {
                </div>
                <span className="total-price">KSh {(item.price * (item.qty || 1)).toLocaleString()}</span>
             </div>
-            
             <div className="item-actions">
               <button onClick={() => updateQty(item, -1)}>-</button>
               <button onClick={() => updateQty(item, 1)}>+</button>
@@ -112,6 +115,7 @@ function App() {
           </div>
         ))}
       </div>
+      {items.length > 0 && <button className="clear-btn" onClick={clearAll}>Clear All</button>}
     </div>
   );
 }
