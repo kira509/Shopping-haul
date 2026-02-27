@@ -13,3 +13,4 @@ button { background: var(--neon); border: none; padding: 10px 20px; border-radiu
 .item { display: flex; justify-content: space-between; padding: 15px; background: var(--card); margin-bottom: 8px; border-radius: 8px; cursor: pointer; }
 .item.done { opacity: 0.4; text-decoration: line-through; border: 1px solid var(--neon); }
 .red { color: #ff4444; }
+  
